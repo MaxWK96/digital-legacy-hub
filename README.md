@@ -1,73 +1,237 @@
-# Welcome to your Lovable project
+# Digital Executor
 
-## Project info
+> **Your crypto doesn't die with you.**
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+Digital Executor is an autonomous crypto estate management protocol built on Chainlink CRE. It monitors owner proof-of-life signals on-chain. If the owner becomes inactive beyond a threshold, assets automatically transfer to World ID-verified heirs — no lawyers, no intermediaries, no lost keys.
 
-## How can I edit this code?
+**Hackathon:** Chainlink Convergence 2026
+**Prize tracks:** DeFi & Tokenization · CRE & AI · Privacy · World ID
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## Architecture
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+Digital-Legacy-Hub/
+├── src/                        # Vite + React + TypeScript frontend
+│   ├── components/             # Dashboard, CREMonitoring, DemoModeToggle, WorldIDVerify
+│   ├── context/                # DemoModeContext
+│   └── hooks/                  # useEstateStatus, useHeirs
+├── contracts/                  # Hardhat smart contracts
+│   └── contracts/
+│       └── LifeContract.sol    # Core estate contract (Sepolia)
+├── cre-workflow/               # Chainlink CRE inactivity monitor
+│   └── main.ts                 # Reads LifeContract → VerdictRegistry
+├── backend/                    # Next.js API routes (port 3001)
+│   └── pages/api/
+│       ├── status.ts           # GET /api/status
+│       ├── heartbeat.ts        # POST /api/heartbeat
+│       ├── heirs.ts            # GET /api/heirs
+│       ├── estate.ts           # GET /api/estate
+│       └── heirs/register.ts  # POST /api/heirs/register (World ID)
+└── scripts/
+    └── demo.ts                 # Full deploy + configure demo
 ```
 
-**Edit a file directly in GitHub**
+---
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Chainlink Integration
 
-**Use GitHub Codespaces**
+| Service | Usage |
+|---|---|
+| **CRE (Chainlink Runtime Environment)** | Scheduled inactivity monitor. Reads `lastPing` + `threshold` from LifeContract via `EVMClient.callContract()`. Writes ACTIVE/WARNING/CRITICAL verdict on-chain. |
+| **Sepolia Testnet** | All contracts deployed and verified on Ethereum Sepolia |
+| **VerdictRegistry** | Existing deployed contract reused for storing CRE verdicts |
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+---
 
-## What technologies are used for this project?
+## Smart Contracts
 
-This project is built with:
+### LifeContract.sol — Core Estate Logic
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```solidity
+// Owner heartbeat — resets inactivity timer
+function ping() external onlyOwner
 
-## How can I deploy this project?
+// Heir management
+function addHeir(address payable heir, uint256 allocationBps) external onlyOwner
+function registerHeir(address heir, uint256 nullifierHash) external
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+// Trustless execution — callable by anyone when inactive
+function executeEstate() external
 
-## Can I connect a custom domain to my Lovable project?
+// View functions
+function getDaysElapsed() external view returns (uint256)
+function getThresholdDays() external view returns (uint256)
+function isInactive() external view returns (bool)
+function getHeir(uint256 index) external view returns (address, uint256, uint256, bool)
+function getStatus() external view returns (uint256, uint256, uint256, uint256, bool)
+```
 
-Yes, you can!
+**Events:** `HeartbeatReceived`, `EstateExecuted`, `HeirAdded`, `HeirRegistered`, `ThresholdUpdated`
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### VerdictRegistry (existing, reused)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```
+Address: 0x7576b99366a945BB29A087cA9bA467d28397288f (Sepolia)
+```
+
+---
+
+## CRE Simulation Command
+
+```bash
+# From project root
+cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings
+
+# Or via npm:
+npm run cre:simulate
+
+# Broadcast real tx to Sepolia:
+npm run cre:broadcast
+```
+
+### CRE Workflow Output
+
+```
+============================================================
+  Digital Executor — CRE Inactivity Monitor
+  Chainlink Convergence Hackathon 2026
+============================================================
+  LifeContract: 0x...
+  Registry:     0x7576b99366a945BB29A087cA9bA467d28397288f
+
+[1/3] Reading last heartbeat from LifeContract...
+  Last ping:     2026-02-01T12:00:00.000Z (unix: 1738400000)
+  Threshold:     180 days
+  Current time:  2026-02-25T10:00:00.000Z (unix: 1740474000)
+
+[2/3] Computing inactivity verdict...
+  Last ping:     24.00 days ago
+  Threshold:     180 days
+  Elapsed:       13% of threshold
+  Status:        🟢 ACTIVE
+  ✓  Owner is active — no action required
+
+[3/3] Writing status on-chain to VerdictRegistry...
+  Registry: 0x7576b99366a945BB29A087cA9bA467d28397288f
+  VerdictHash: 0x...
+  TxHash: 0x...
+============================================================
+  MONITOR COMPLETE
+  Status:        ACTIVE
+  TxHash:        0x...
+  Etherscan:     https://sepolia.etherscan.io/tx/0x...
+============================================================
+```
+
+---
+
+## Contract Addresses (Sepolia)
+
+| Contract | Address |
+|---|---|
+| LifeContract | *Run `npm run contracts:deploy` — address printed to console* |
+| VerdictRegistry | `0x7576b99366a945BB29A087cA9bA467d28397288f` |
+
+---
+
+## Backend API Routes
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/api/status` | GET | `lastPing`, `daysElapsed`, `thresholdDays`, `status`, `balance` |
+| `/api/heartbeat` | POST | Sends `ping()` on LifeContract |
+| `/api/heirs` | GET | Heir list with allocations + World ID status |
+| `/api/estate` | GET | Estate balance + per-heir estimated amounts |
+| `/api/heirs/register` | POST | Store World ID nullifier hash on-chain |
+
+---
+
+## World ID Integration
+
+Heirs prove unique humanity via World ID. Flow:
+1. Heir clicks **Verify with World ID** next to their address in Dashboard
+2. `IDKitWidget` opens, heir completes verification
+3. On success: frontend calls `POST /api/heirs/register` with `nullifierHash`
+4. Backend calls `registerHeir(address, nullifierHash)` on LifeContract
+5. Heir shows **✓ World ID** badge — Sybil-resistant estate distribution
+
+**Action ID:** `digital-executor-heir-verify`
+**Nullifier hash:** Stored immutably on LifeContract, prevents duplicate registration
+
+---
+
+## Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+| Variable | Description |
+|---|---|
+| `NEXT_PUBLIC_RPC_URL` | Alchemy Sepolia RPC URL |
+| `PRIVATE_KEY` | Deployer/owner private key |
+| `LIFE_CONTRACT_ADDRESS` | Set after deployment |
+| `VITE_LIFE_CONTRACT_ADDRESS` | Same (for frontend) |
+| `VERDICT_REGISTRY_ADDRESS` | `0x7576b99366a945BB29A087cA9bA467d28397288f` |
+| `NEXT_PUBLIC_WORLD_APP_ID` | World ID app ID |
+| `ETHERSCAN_API_KEY` | For contract verification |
+
+---
+
+## How to Run
+
+### Prerequisites
+
+- Node.js 18+, npm
+- [CRE CLI](https://docs.chain.link/chainlink-nodes/cre) installed globally
+- Sepolia ETH — [sepoliafaucet.com](https://sepoliafaucet.com)
+
+### Quick Start
+
+```bash
+# 1. Install frontend dependencies
+npm install
+
+# 2. Setup env
+cp .env.example .env
+# Edit .env with your PRIVATE_KEY and NEXT_PUBLIC_RPC_URL
+
+# 3. Compile + deploy contracts
+npm run contracts:install
+npm run contracts:compile
+npm run contracts:deploy
+# → Copy LIFE_CONTRACT_ADDRESS to .env
+
+# 4. Configure CRE workflow
+# Edit cre-workflow/config.json: set lifeContractAddress
+# Install CRE deps:
+cd cre-workflow && npm install && cd ..
+
+# 5. Run demo
+npm run demo
+
+# 6. Simulate CRE
+npm run cre:simulate
+
+# 7. Start app
+npm run dev:all
+# Frontend: http://localhost:8080
+# Backend:  http://localhost:3001
+```
+
+---
+
+## Demo Mode
+
+Toggle **DEMO MODE** (top-right corner) to:
+- Simulate 170/180 days elapsed (amber warning state)
+- See **CRITICAL — Execute Estate** button at 180+ days
+- Test the full UI without a live contract
+
+---
+
+## License
+
+MIT

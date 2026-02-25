@@ -22,7 +22,7 @@ const steps = [
 ];
 
 const HowItWorks = () => (
-  <section className="py-24 bg-background">
+  <section id="how-it-works" className="py-24 bg-background">
     <div className="max-w-5xl mx-auto px-6">
       <h2 className="text-3xl md:text-4xl font-serif font-bold text-center mb-16 text-foreground">
         How It Works

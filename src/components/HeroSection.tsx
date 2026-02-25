@@ -15,12 +15,18 @@ const HeroSection = () => (
         Digital Executor autonomously manages your on-chain estate. Chainlink CRE continuously monitors proof-of-life signals. When consensus confirms inactivity — your designated heirs receive everything. No lawyers. No courts. No lost keys.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 justify-center animate-float-up-delay-2">
-        <button className="px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:brightness-110 transition-all duration-300 gold-glow">
+        <a
+          href="#dashboard"
+          className="px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-lg hover:brightness-110 transition-all duration-300 gold-glow text-center"
+        >
           Create Your Executor
-        </button>
-        <button className="px-8 py-4 border border-muted text-foreground font-semibold rounded-lg hover:border-gold hover:text-gold transition-all duration-300">
+        </a>
+        <a
+          href="#how-it-works"
+          className="px-8 py-4 border border-muted text-foreground font-semibold rounded-lg hover:border-gold hover:text-gold transition-all duration-300 text-center"
+        >
           See How It Works
-        </button>
+        </a>
       </div>
     </div>
   </section>

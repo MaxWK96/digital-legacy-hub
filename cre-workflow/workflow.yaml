@@ -1,0 +1,27 @@
+# ==========================================================================
+# Digital Executor — CRE Inactivity Monitor
+# ==========================================================================
+# Chainlink Convergence Hackathon 2026
+#
+# Reads lastPing + threshold from LifeContract on Sepolia.
+# Evaluates inactivity: ACTIVE / WARNING / CRITICAL.
+# Writes status verdict to VerdictRegistry.
+#
+# Simulate:
+#   cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings
+
+staging-settings:
+  user-workflow:
+    workflow-name: "digital-executor-inactivity-monitor-staging"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.json"
+    secrets-path: "./secrets.json"
+
+production-settings:
+  user-workflow:
+    workflow-name: "digital-executor-inactivity-monitor"
+  workflow-artifacts:
+    workflow-path: "./main.ts"
+    config-path: "./config.json"
+    secrets-path: "./secrets.json"
