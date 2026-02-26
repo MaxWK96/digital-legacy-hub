@@ -1,9 +1,11 @@
 import HeroSection from "@/components/HeroSection";
 import StatsRow from "@/components/StatsRow";
 import HowItWorks from "@/components/HowItWorks";
-import Dashboard from "@/components/Dashboard";
 import CREMonitoring from "@/components/CREMonitoring";
+import CREWorkflowSection from "@/components/CREWorkflowSection";
+import Dashboard from "@/components/Dashboard";
 import WhatGetsExecuted from "@/components/WhatGetsExecuted";
+import ArchitectureSection from "@/components/ArchitectureSection";
 import WhyThisExists from "@/components/WhyThisExists";
 import Footer from "@/components/Footer";
 
@@ -12,9 +14,11 @@ const Index = () => (
     <HeroSection />
     <StatsRow />
     <HowItWorks />
-    <Dashboard />
     <CREMonitoring />
+    <CREWorkflowSection />
+    <Dashboard />
     <WhatGetsExecuted />
+    <ArchitectureSection />
     <WhyThisExists />
     <Footer />
   </div>

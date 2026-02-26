@@ -19,11 +19,16 @@ export interface HeirsData {
 
 const DEMO_HEIRS: HeirsData = {
   heirs: [
-    { index: 0, wallet: '0xAlice...', allocationBps: 5000, allocation: '50.00%', nullifierHash: '12345', isVerified: true },
-    { index: 1, wallet: '0xBob....',  allocationBps: 3000, allocation: '30.00%', nullifierHash: '67890', isVerified: true },
-    { index: 2, wallet: '0xCarol...', allocationBps: 2000, allocation: '20.00%', nullifierHash: '0',     isVerified: false },
+    {
+      index:         0,
+      wallet:        '0x742d35Cc6634C0532925a3b844C2eA1c3aE3a1c',
+      allocationBps: 10000,
+      allocation:    '100.00%',
+      nullifierHash: '1193877402951378172618326654972897498203',
+      isVerified:    true,
+    },
   ],
-  totalHirs:     3,
+  totalHirs:     1,
   totalAllocBps: 10000,
   totalAlloc:    '100.00%',
 }

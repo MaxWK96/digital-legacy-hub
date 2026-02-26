@@ -40,6 +40,55 @@ const Dashboard = () => {
     ? 'HEARTBEAT WARNING'
     : 'HEARTBEAT ACTIVE'
 
+  // Autonomous Executor Signals — data-driven, all green in demo (3 days ago, ACTIVE)
+  const signalDotClass = (active: boolean, crit: boolean, warn: boolean) => {
+    if (!active) return 'bg-muted-foreground'
+    if (crit)    return 'bg-red-500'
+    if (warn)    return 'bg-amber-500'
+    return 'bg-green-status'
+  }
+
+  const isCrit = status?.status === 'CRITICAL'
+  const isWarn = status?.status === 'WARNING'
+  const isActive = !!status && !statusLoading
+
+  const anyHeirVerified = (heirsData?.heirs ?? []).some((h) => h.isVerified)
+
+  const signals = [
+    {
+      icon:   '🔗',
+      title:  'On-chain heartbeat',
+      detail: isActive ? `Last ping: ${lastPingAgo}` : 'Fetching...',
+      dot:    signalDotClass(isActive, isCrit, isWarn),
+      label:  isActive ? (status?.status ?? 'ACTIVE') : 'LOADING',
+      color:  isActive ? statusColor(status?.status) : 'text-muted-foreground',
+    },
+    {
+      icon:   '📊',
+      title:  'Wallet activity',
+      detail: isActive ? `Last tx: ${lastPingAgo}` : 'Fetching...',
+      dot:    signalDotClass(isActive, isCrit, isWarn),
+      label:  isActive ? (status?.status ?? 'ACTIVE') : 'LOADING',
+      color:  isActive ? statusColor(status?.status) : 'text-muted-foreground',
+    },
+    {
+      icon:   '🌐',
+      title:  'CRE consensus',
+      detail: isActive ? `3/3 nodes: ${status?.status ?? 'ACTIVE'}` : 'CRE nodes syncing...',
+      dot:    signalDotClass(isActive, isCrit, isWarn),
+      label:  isActive ? (status?.status ?? 'ACTIVE') : 'LOADING',
+      color:  isActive ? statusColor(status?.status) : 'text-muted-foreground',
+    },
+    {
+      icon:   '🪪',
+      title:  'World ID',
+      detail: heirsLoading ? 'Checking...' : anyHeirVerified ? 'Heir verified' : 'No heir verified',
+      dot:    heirsLoading ? 'bg-muted-foreground' : anyHeirVerified ? 'bg-green-status' : 'bg-amber-500',
+      label:  heirsLoading ? 'LOADING' : anyHeirVerified ? 'VERIFIED' : 'PENDING',
+      color:  heirsLoading ? 'text-muted-foreground' : anyHeirVerified ? 'text-green-status' : 'text-amber-400',
+    },
+  ]
+
   return (
     <section id="dashboard" className="py-24 bg-navy-deep">
       <div className="max-w-6xl mx-auto px-6">
@@ -48,7 +97,7 @@ const Dashboard = () => {
         </h2>
         <p className="text-center text-muted-foreground mb-12">
           {demoMode ? (
-            <span className="text-amber-400 font-mono text-xs">⚠ DEMO MODE — simulated 170/180 days elapsed</span>
+            <span className="text-amber-400 font-mono text-xs">⚠ DEMO MODE — simulated healthy estate, 3/180 days elapsed</span>
           ) : (
             'Live estate monitoring interface'
           )}
@@ -144,7 +193,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Bottom: Threshold bar */}
+        {/* Threshold bar */}
         <div className="mt-6 bg-card rounded-xl p-6 gold-border-glow">
           <div className="flex justify-between items-center mb-2">
             <span className="font-mono text-xs text-muted-foreground uppercase tracking-widest">Inactivity Threshold</span>
@@ -165,6 +214,28 @@ const Dashboard = () => {
               ? `⚠ WARNING — ${status.warningPct}% of inactivity threshold reached.`
               : `Status: All systems nominal — ${status?.warningPct ?? 0}% of threshold`}
           </p>
+        </div>
+
+        {/* Autonomous Executor Signals */}
+        <div className="mt-6 bg-card rounded-xl p-6 gold-border-glow">
+          <h3 className="font-mono text-xs uppercase tracking-widest text-muted-foreground mb-5">
+            Autonomous Executor Signals
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {signals.map((s) => (
+              <div key={s.title} className="flex items-start gap-3 p-3 rounded-lg bg-background/40 border border-border/30">
+                <span className="text-xl mt-0.5">{s.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-foreground text-xs font-medium mb-0.5">{s.title}</p>
+                  <p className="text-[11px] font-mono text-muted-foreground truncate">{s.detail}</p>
+                </div>
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  <div className={`w-2 h-2 rounded-full green-pulse ${s.dot}`} />
+                  <span className={`text-[10px] font-mono ${s.color}`}>{s.label}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>

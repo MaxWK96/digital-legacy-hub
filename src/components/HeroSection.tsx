@@ -14,10 +14,12 @@ const HeroSection = () => {
           Digital Executor
         </p>
         <h1 className="text-4xl sm:text-5xl md:text-7xl font-serif font-bold leading-tight mb-6 animate-float-up text-foreground">
-          Your crypto doesn't die with you.
+          Crypto shouldn't die with its owner.
         </h1>
         <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed animate-float-up-delay-1">
-          Digital Executor autonomously manages your on-chain estate. Chainlink CRE continuously monitors proof-of-life signals. When consensus confirms inactivity — your designated heirs receive everything. No lawyers. No courts. No lost keys.
+          Digital Executor uses Chainlink CRE to autonomously monitor proof-of-life signals across
+          multiple sources. When consensus confirms inactivity — your heirs receive everything.
+          No lawyers. No courts. No lost keys.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-float-up-delay-2">
           <button
@@ -32,6 +34,19 @@ const HeroSection = () => {
           >
             See How It Works
           </a>
+        </div>
+
+        {/* Track badge */}
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-2 animate-float-up-delay-2">
+          <span className="text-[11px] font-mono text-muted-foreground/60">Built for</span>
+          {['Chainlink Convergence 2026', 'DeFi & Tokenization', 'CRE & AI', 'World ID'].map((tag) => (
+            <span
+              key={tag}
+              className="text-[10px] font-mono px-2.5 py-1 rounded-full border border-gold/20 bg-gold/5 text-gold/70"
+            >
+              {tag}
+            </span>
+          ))}
         </div>
       </div>
 

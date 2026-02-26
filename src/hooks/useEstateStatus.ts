@@ -16,17 +16,17 @@ export interface StatusData {
   timestamp:       number
 }
 
-// Demo state: simulated 170/180 days elapsed — red warning
+// Demo state: healthy estate — 3/180 days elapsed, all systems nominal
 const DEMO_STATUS: StatusData = {
-  lastPing:        Math.floor(Date.now() / 1000) - 170 * 86400,
+  lastPing:        Math.floor(Date.now() / 1000) - 3 * 86400,
   threshold:       180 * 86400,
-  daysElapsed:     170,
+  daysElapsed:     3,
   thresholdDays:   180,
-  status:          'WARNING',
-  warningPct:      94,
+  status:          'ACTIVE',
+  warningPct:      2,
   executed:        false,
   balance:         '3.2000',
-  contractAddress: '0xDEMO000000000000000000000000000000000000',
+  contractAddress: '0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3',
   timestamp:       Math.floor(Date.now() / 1000),
 }
 
