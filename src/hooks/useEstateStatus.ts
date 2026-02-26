@@ -16,18 +16,35 @@ export interface StatusData {
   timestamp:       number
 }
 
-// Demo state: healthy estate — 3/180 days elapsed, all systems nominal
-const DEMO_STATUS: StatusData = {
-  lastPing:        Math.floor(Date.now() / 1000) - 3 * 86400,
-  threshold:       180 * 86400,
-  daysElapsed:     3,
-  thresholdDays:   180,
-  status:          'ACTIVE',
-  warningPct:      2,
-  executed:        false,
-  balance:         '3.2000',
-  contractAddress: '0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3',
-  timestamp:       Math.floor(Date.now() / 1000),
+// Mutable demo last-ping — updated when heartbeat is sent in demo mode
+let _demoLastPing = Math.floor(Date.now() / 1000) - 3 * 86400
+
+export const resetDemoLastPing = () => {
+  _demoLastPing = Math.floor(Date.now() / 1000)
+}
+
+const getDemoStatus = (): StatusData => {
+  const now         = Math.floor(Date.now() / 1000)
+  const secs        = now - _demoLastPing
+  const daysElapsed = Math.floor(secs / 86400)
+  const warningPct  = Math.min(100, Math.round((daysElapsed / 180) * 100))
+  const status: EstateStatus =
+    daysElapsed >= 180 ? 'CRITICAL' :
+    daysElapsed >= 162 ? 'WARNING'  :
+    'ACTIVE'
+
+  return {
+    lastPing:        _demoLastPing,
+    threshold:       180 * 86400,
+    daysElapsed,
+    thresholdDays:   180,
+    status,
+    warningPct,
+    executed:        false,
+    balance:         '3.2000',
+    contractAddress: '0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3',
+    timestamp:       now,
+  }
 }
 
 export const useEstateStatus = () => {
@@ -36,13 +53,13 @@ export const useEstateStatus = () => {
   return useQuery<StatusData>({
     queryKey: ['estate-status', demoMode],
     queryFn: async () => {
-      if (demoMode) return DEMO_STATUS
+      if (demoMode) return getDemoStatus()
 
       const res = await fetch('/api/status')
       if (!res.ok) throw new Error(`Status fetch failed: ${res.status}`)
       return res.json() as Promise<StatusData>
     },
-    refetchInterval: 30_000,  // poll every 30s
+    refetchInterval: 30_000,
     staleTime:       20_000,
     retry: 2,
   })
@@ -55,8 +72,8 @@ export const useSendHeartbeat = () => {
   return useMutation({
     mutationFn: async () => {
       if (demoMode) {
-        // Simulate a delay in demo mode
-        await new Promise((r) => setTimeout(r, 1500))
+        resetDemoLastPing()
+        await new Promise((r) => setTimeout(r, 800))
         return { success: true, txHash: '0xDEMO_TX_HASH', message: 'Demo heartbeat recorded.' }
       }
 
@@ -68,7 +85,6 @@ export const useSendHeartbeat = () => {
       return res.json()
     },
     onSuccess: () => {
-      // Refresh status after heartbeat
       void queryClient.invalidateQueries({ queryKey: ['estate-status'] })
     },
   })

@@ -9,9 +9,7 @@ const DemoModeToggle = () => {
   const sendHeartbeat = useSendHeartbeat()
   const { toast } = useToast()
 
-  // In demo mode: always show execute button (simulating 170/180 days — red warning)
-  // In live mode: only show when contract reports CRITICAL
-  const isCritical = demoMode ? true : status?.status === 'CRITICAL'
+  const isCritical = status?.status === 'CRITICAL'
 
   const handleExecute = () => {
     toast({
@@ -58,9 +56,9 @@ const DemoModeToggle = () => {
       </button>
 
       {/* Demo info banner */}
-      {demoMode && (
+      {demoMode && status && (
         <div className="bg-amber-900/40 border border-amber-500/40 rounded-lg px-3 py-2 text-xs font-mono text-amber-300 max-w-[220px] text-right backdrop-blur-sm">
-          Simulated: 170/180 days elapsed
+          Simulated: {status.daysElapsed}/{status.thresholdDays} days elapsed
         </div>
       )}
 
