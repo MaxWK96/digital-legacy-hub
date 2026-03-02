@@ -98,7 +98,7 @@ npm run cre:broadcast
   Digital Executor — CRE Inactivity Monitor
   Chainlink Convergence Hackathon 2026
 ============================================================
-  LifeContract: 0x...
+  LifeContract: 0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3
   Registry:     0x7576b99366a945BB29A087cA9bA467d28397288f
 
 [1/3] Reading last heartbeat from LifeContract...
@@ -115,13 +115,13 @@ npm run cre:broadcast
 
 [3/3] Writing status on-chain to VerdictRegistry...
   Registry: 0x7576b99366a945BB29A087cA9bA467d28397288f
-  VerdictHash: 0x...
-  TxHash: 0x...
+  VerdictHash: (computed at runtime — keccak256 of lifeContract + status + timestamp)
+  TxHash: 0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b
 ============================================================
   MONITOR COMPLETE
   Status:        ACTIVE
-  TxHash:        0x...
-  Etherscan:     https://sepolia.etherscan.io/tx/0x...
+  TxHash:        0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b
+  Etherscan:     https://sepolia.etherscan.io/tx/0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b
 ============================================================
 ```
 

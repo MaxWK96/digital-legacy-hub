@@ -1,6 +1,7 @@
 import { useEstateStatus } from '@/hooks/useEstateStatus'
 
 const VERDICT_REGISTRY = '0x7576b99366a945BB29A087cA9bA467d28397288f'
+const LATEST_TX_HASH   = '0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b'
 
 const CREMonitoring = () => {
   const { data: status, isLoading } = useEstateStatus()
@@ -101,7 +102,7 @@ const CREMonitoring = () => {
         </div>
 
         {/* VerdictRegistry link */}
-        <div className="mt-8 text-center">
+        <div className="mt-8 text-center space-y-2">
           <p className="text-xs font-mono text-muted-foreground">
             Verdicts stored on-chain at{' '}
             <a
@@ -113,6 +114,17 @@ const CREMonitoring = () => {
               {VERDICT_REGISTRY.slice(0, 10)}...{VERDICT_REGISTRY.slice(-6)}
             </a>
             {' '}(VerdictRegistry · Sepolia)
+          </p>
+          <p className="text-xs font-mono text-muted-foreground">
+            Latest broadcast:{' '}
+            <a
+              href={`https://sepolia.etherscan.io/tx/${LATEST_TX_HASH}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold hover:underline"
+            >
+              {LATEST_TX_HASH.slice(0, 10)}...{LATEST_TX_HASH.slice(-8)}
+            </a>
           </p>
         </div>
       </div>
