@@ -14,8 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "demo": "npx tsx scripts/demo.ts",
-    "cre:simulate": "C:\\Users\\macki\\Downloads\\cre_windows_amd64\\cre.exe workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings",
-    "cre:broadcast": "C:\\Users\\macki\\Downloads\\cre_windows_amd64\\cre.exe workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings --broadcast",
+    "cre:simulate": "cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings",
+    "cre:broadcast": "cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings --broadcast",
     "contracts:install": "cd contracts && npm install",
     "contracts:compile": "cd contracts && npx hardhat compile",
     "contracts:deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network sepolia"

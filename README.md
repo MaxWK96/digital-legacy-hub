@@ -9,6 +9,30 @@ Digital Executor is an autonomous crypto estate management protocol built on Cha
 
 ---
 
+## The problem your project addresses
+
+When a self-custodied crypto holder dies or becomes permanently incapacitated, their assets are irretrievably lost. Private keys die with the owner — probate courts have no mechanism to override blockchain ownership, centralized custodians reintroduce the counterparty risk that crypto-native users explicitly avoid, and writing a private key in a will is a catastrophic security risk. An estimated $100B+ in Bitcoin alone is already permanently inaccessible due to lost or deceased-holder keys, with no recovery mechanism for self-custodied wallets.
+
+---
+
+## How you've addressed the problem
+
+Digital Executor creates a trustless dead man's switch on-chain. The owner regularly calls `ping()` on a deployed LifeContract to prove liveness. Chainlink CRE runs an autonomous inactivity monitor on a cron schedule — reading the last heartbeat timestamp from the contract, computing days elapsed, and writing a signed ACTIVE / WARNING / CRITICAL verdict on-chain via the DON. If the inactivity threshold is crossed, any caller can trigger `executeEstate()`, which distributes ETH proportionally to pre-registered, World ID-verified heirs — no lawyers, no intermediaries, no trusted operator, no single point of failure.
+
+---
+
+## How you've used CRE
+
+The CRE workflow (`cre-workflow/main.ts`) runs on a 5-minute cron schedule across the DON and performs three steps:
+
+1. **Read** — `EVMClient.callContract()` reads `lastPing` and `threshold` from LifeContract on Sepolia at the protocol level, without any backend intermediary.
+2. **Evaluate** — Off-chain computation determines ACTIVE (< 90 % of threshold), WARNING (≥ 90 %), or CRITICAL (≥ 100 %), a graded verdict that cannot be expressed in a simple Chainlink Automation `checkUpkeep` boolean.
+3. **Write** — `runtime.report()` + `EVMClient.writeReport()` submits the verdict through the DON's consensus-and-signing pipeline, producing a multi-node endorsed on-chain record rather than a single-operator assertion.
+
+`CronCapability` eliminates any centralized server dependency — the monitor runs on the DON itself. A future extension using CRE Confidential HTTP would allow checking off-chain life signals (email last-login, banking APIs) without leaking heir identities or queried accounts on-chain.
+
+---
+
 ## Architecture
 
 ```
@@ -81,6 +105,8 @@ Address: 0x7576b99366a945BB29A087cA9bA467d28397288f (Sepolia)
 ## CRE Simulation Command
 
 ```bash
+# Requires CRE CLI — install: https://docs.chain.link/chainlink-nodes/cre/getting-started/cli-installation
+
 # From project root
 cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings
 
@@ -229,6 +255,12 @@ Toggle **DEMO MODE** (top-right corner) to:
 - Simulate 170/180 days elapsed (amber warning state)
 - See **CRITICAL — Execute Estate** button at 180+ days
 - Test the full UI without a live contract
+
+---
+
+## Security Note
+
+Note: an earlier commit inadvertently included a testnet-only private key that has since been rotated and holds no funds.
 
 ---
 
