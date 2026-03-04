@@ -127,27 +127,33 @@ npm run cre:broadcast
   LifeContract: 0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3
   Registry:     0x7576b99366a945BB29A087cA9bA467d28397288f
 
-[1/3] Reading last heartbeat from LifeContract...
-  Last ping:     2026-02-01T12:00:00.000Z (unix: 1738400000)
+[1/4] Reading last heartbeat from LifeContract...
+  Last ping:     2026-02-25T23:33:12.000Z (unix: 1772062392)
   Threshold:     180 days
-  Current time:  2026-02-25T10:00:00.000Z (unix: 1740474000)
+  Current time:  2026-03-04T07:52:00.000Z (unix: 1772610720)
 
-[2/3] Computing inactivity verdict...
-  Last ping:     24.00 days ago
+[2/4] Computing inactivity verdict...
+  Last ping:     6.35 days ago
   Threshold:     180 days
-  Elapsed:       13% of threshold
+  Elapsed:       4% of threshold
   Status:        🟢 ACTIVE
   ✓  Owner is active — no action required
 
-[3/3] Writing status on-chain to VerdictRegistry...
+[3/4] Fetching ETH/USD price from CoinGecko...
+  ETH/USD:       $2005.74
+  Estate (ETH):  1.5 ETH
+  Estate value:  $3009 USD
+
+[4/4] Writing status on-chain to VerdictRegistry...
   Registry: 0x7576b99366a945BB29A087cA9bA467d28397288f
-  VerdictHash: (computed at runtime — keccak256 of lifeContract + status + timestamp)
-  TxHash: 0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b
+  VerdictHash: 0xabc4b92491aeb0de1f8a445115451a16e41d7deee10bb34649b8a5333489fc71
+  Verdict:     "DIGITAL_EXECUTOR|ACTIVE|6.35|180|$3009 USD"
+  TxHash: 0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935
 ============================================================
   MONITOR COMPLETE
   Status:        ACTIVE
-  TxHash:        0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b
-  Etherscan:     https://sepolia.etherscan.io/tx/0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b
+  TxHash:        0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935
+  Etherscan:     https://sepolia.etherscan.io/tx/0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935
 ============================================================
 ```
 

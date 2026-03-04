@@ -15,7 +15,7 @@
 
 import {
   bytesToHex,
-  ConsensusAggregationByFields,
+  consensusMedianAggregation,
   type CronPayload,
   handler,
   CronCapability,
@@ -23,9 +23,11 @@ import {
   encodeCallMsg,
   getNetwork,
   hexToBase64,
+  HTTPClient,
+  type HTTPSendRequester,
+  json,
   LATEST_BLOCK_NUMBER,
-  protoBigIntToBigint,
-  median,
+  ok,
   Runner,
   type Runtime,
   TxStatus,
@@ -81,6 +83,7 @@ const configSchema = z.object({
   schedule:            z.string(),
   lifeContractAddress: z.string(),
   registryAddress:     z.string(),
+  estateEthAmount:     z.string().default('0'),
   evms: z.array(
     z.object({
       chainSelectorName: z.string(),
@@ -197,6 +200,26 @@ const readBlockTimestamp = (
 }
 
 // ============================================================================
+// Step 2: Fetch ETH/USD price from CoinGecko
+// ============================================================================
+
+const fetchEthPriceUsd = (sendRequester: HTTPSendRequester): number => {
+  const response = sendRequester
+    .sendRequest({
+      url:    'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
+      method: 'GET',
+    })
+    .result()
+
+  if (!ok(response)) {
+    throw new Error(`CoinGecko price fetch failed: status ${response.statusCode}`)
+  }
+
+  const data = json(response) as { ethereum: { usd: number } }
+  return data.ethereum.usd
+}
+
+// ============================================================================
 // Step 3: Evaluate inactivity
 // ============================================================================
 
@@ -227,8 +250,9 @@ const evaluateInactivity = (
 // ============================================================================
 
 const writeVerdictOnChain = (
-  runtime:     Runtime<Config>,
-  result:      InactivityResult,
+  runtime:        Runtime<Config>,
+  result:         InactivityResult,
+  estateUsdValue: number,
 ): string => {
   const evmConfig = runtime.config.evms[0]
 
@@ -244,8 +268,8 @@ const writeVerdictOnChain = (
 
   const evmClient = new EVMClient(network.chainSelector.selector)
 
-  // Verdict string format: "DIGITAL_EXECUTOR|STATUS|daysElapsed|thresholdDays"
-  const verdictStr = `DIGITAL_EXECUTOR|${result.status}|${result.daysElapsed.toFixed(2)}|${result.thresholdDays}`
+  // Verdict string format: "DIGITAL_EXECUTOR|STATUS|daysElapsed|thresholdDays|$USD"
+  const verdictStr = `DIGITAL_EXECUTOR|${result.status}|${result.daysElapsed.toFixed(2)}|${result.thresholdDays}|$${estateUsdValue} USD`
 
   // Hash: keccak256(abi.encodePacked(lifeContract, status, timestamp))
   const timestamp = Math.floor(Date.now() / 1000)
@@ -323,7 +347,7 @@ const runInactivityMonitor = (runtime: Runtime<Config>): string => {
   const evmClient = new EVMClient(network.chainSelector.selector)
 
   // ---- Step 1: Read contract state ----
-  runtime.log('[1/3] Reading last heartbeat from LifeContract...')
+  runtime.log('[1/4] Reading last heartbeat from LifeContract...')
 
   const lastPing   = readLastPing(runtime, evmClient)
   const threshold  = readThreshold(runtime, evmClient)
@@ -339,7 +363,7 @@ const runInactivityMonitor = (runtime: Runtime<Config>): string => {
 
   // ---- Step 2: Evaluate ----
   runtime.log('')
-  runtime.log('[2/3] Computing inactivity verdict...')
+  runtime.log('[2/4] Computing inactivity verdict...')
 
   const result = evaluateInactivity(lastPing, threshold, nowTimestamp)
 
@@ -360,12 +384,28 @@ const runInactivityMonitor = (runtime: Runtime<Config>): string => {
     runtime.log('  ✓  Owner is active — no action required')
   }
 
-  // ---- Step 3: Write on-chain ----
+  // ---- Step 3: Fetch ETH/USD price from CoinGecko ----
   runtime.log('')
-  runtime.log('[3/3] Writing status on-chain to VerdictRegistry...')
+  runtime.log('[3/4] Fetching ETH/USD price from CoinGecko...')
+
+  const httpClient  = new HTTPClient()
+  const ethPriceUsd = httpClient
+    .sendRequest(runtime, fetchEthPriceUsd, consensusMedianAggregation<number>())()
+    .result()
+
+  const estateEth = parseFloat(runtime.config.estateEthAmount)
+  const estateUsd = Math.round(estateEth * ethPriceUsd)
+
+  runtime.log(`  ETH/USD:       $${ethPriceUsd.toFixed(2)}`)
+  runtime.log(`  Estate (ETH):  ${estateEth} ETH`)
+  runtime.log(`  Estate value:  $${estateUsd} USD`)
+
+  // ---- Step 4: Write on-chain ----
+  runtime.log('')
+  runtime.log('[4/4] Writing status on-chain to VerdictRegistry...')
   runtime.log(`  Registry: ${runtime.config.registryAddress}`)
 
-  const txHash = writeVerdictOnChain(runtime, result)
+  const txHash = writeVerdictOnChain(runtime, result, estateUsd)
 
   // ---- Summary ----
   runtime.log('')
@@ -379,7 +419,7 @@ const runInactivityMonitor = (runtime: Runtime<Config>): string => {
   runtime.log(`  Etherscan:     https://sepolia.etherscan.io/tx/${txHash}`)
   runtime.log('='.repeat(60))
 
-  return `${result.status}|${daysStr}|${txHash}`
+  return `${result.status}|${daysStr}|${txHash}|$${estateUsd} USD`
 }
 
 // ============================================================================

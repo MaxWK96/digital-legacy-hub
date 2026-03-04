@@ -1,7 +1,7 @@
 import { useEstateStatus } from '@/hooks/useEstateStatus'
 
 const VERDICT_REGISTRY = '0x7576b99366a945BB29A087cA9bA467d28397288f'
-const LATEST_TX_HASH   = '0x6f333ba9b71d17d8b63b350b3cf33a0a1346122ed88e1e0be2d95d5b03520c7b'
+const LATEST_TX_HASH   = '0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935'
 
 const CREMonitoring = () => {
   const { data: status, isLoading } = useEstateStatus()
