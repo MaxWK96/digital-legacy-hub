@@ -7,6 +7,8 @@ Digital Executor is an autonomous crypto estate management protocol built on Cha
 **Hackathon:** Chainlink Convergence 2026
 **Prize tracks:** DeFi & Tokenization · CRE & AI · Privacy · World ID
 
+**Demo:** [https://www.youtube.com/watch?v=o8y-5CGNbNs](https://www.youtube.com/watch?v=o8y-5CGNbNs)
+
 ---
 
 ## The problem your project addresses
@@ -22,6 +24,8 @@ Digital Executor creates a trustless dead man's switch on-chain. The owner regul
 ---
 
 ## How you've used CRE
+
+**Demo:** [https://www.youtube.com/watch?v=o8y-5CGNbNs](https://www.youtube.com/watch?v=o8y-5CGNbNs)
 
 The CRE workflow (`cre-workflow/main.ts`) runs on a 5-minute cron schedule across the DON and performs three steps:
 
@@ -97,7 +101,7 @@ function getStatus() external view returns (uint256, uint256, uint256, uint256, 
 ### VerdictRegistry (existing, reused)
 
 ```
-Address: 0x7576b99366a945BB29A087cA9bA467d28397288f (Sepolia)
+Address: 0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910 (Sepolia)
 ```
 
 ---
@@ -125,7 +129,7 @@ npm run cre:broadcast
   Chainlink Convergence Hackathon 2026
 ============================================================
   LifeContract: 0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3
-  Registry:     0x7576b99366a945BB29A087cA9bA467d28397288f
+  Registry:     0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910
 
 [1/4] Reading last heartbeat from LifeContract...
   Last ping:     2026-02-25T23:33:12.000Z (unix: 1772062392)
@@ -145,15 +149,15 @@ npm run cre:broadcast
   Estate value:  $3009 USD
 
 [4/4] Writing status on-chain to VerdictRegistry...
-  Registry: 0x7576b99366a945BB29A087cA9bA467d28397288f
+  Registry: 0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910
   VerdictHash: 0xabc4b92491aeb0de1f8a445115451a16e41d7deee10bb34649b8a5333489fc71
   Verdict:     "DIGITAL_EXECUTOR|ACTIVE|6.35|180|$3009 USD"
-  TxHash: 0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935
+  TxHash: 0xa6a7d2d795a2cacb0f021312119a98f17d3ab601f9afcfd476316456db2255d8
 ============================================================
   MONITOR COMPLETE
   Status:        ACTIVE
-  TxHash:        0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935
-  Etherscan:     https://sepolia.etherscan.io/tx/0xb47aeff880ca7cc54135361c37f42a0671e922519447c7e9bdec109151514935
+  TxHash:        0xa6a7d2d795a2cacb0f021312119a98f17d3ab601f9afcfd476316456db2255d8
+  Etherscan:     https://sepolia.etherscan.io/tx/0xa6a7d2d795a2cacb0f021312119a98f17d3ab601f9afcfd476316456db2255d8
 ============================================================
 ```
 
@@ -164,7 +168,7 @@ npm run cre:broadcast
 | Contract | Address |
 |---|---|
 | LifeContract | *Run `npm run contracts:deploy` — address printed to console* |
-| VerdictRegistry | `0x7576b99366a945BB29A087cA9bA467d28397288f` |
+| VerdictRegistry | `0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910` |
 
 ---
 
@@ -206,7 +210,7 @@ cp .env.example .env
 | `PRIVATE_KEY` | Deployer/owner private key |
 | `LIFE_CONTRACT_ADDRESS` | Set after deployment |
 | `VITE_LIFE_CONTRACT_ADDRESS` | Same (for frontend) |
-| `VERDICT_REGISTRY_ADDRESS` | `0x7576b99366a945BB29A087cA9bA467d28397288f` |
+| `VERDICT_REGISTRY_ADDRESS` | `0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910` |
 | `NEXT_PUBLIC_WORLD_APP_ID` | World ID app ID |
 | `ETHERSCAN_API_KEY` | For contract verification |
 
