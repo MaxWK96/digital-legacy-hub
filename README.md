@@ -5,7 +5,7 @@
 Digital Executor is an autonomous crypto estate management protocol built on Chainlink CRE. It monitors owner proof-of-life signals on-chain. If the owner becomes inactive beyond a threshold, assets automatically transfer to World ID-verified heirs — no lawyers, no intermediaries, no lost keys.
 
 **Hackathon:** Chainlink Convergence 2026
-**Prize tracks:** DeFi & Tokenization · CRE & AI · Privacy · World ID
+**Prize tracks:** DeFi & Tokenization · CRE & AI · World ID
 
 **Demo:** [https://www.youtube.com/watch?v=o8y-5CGNbNs](https://www.youtube.com/watch?v=o8y-5CGNbNs)
 
@@ -221,7 +221,7 @@ cp .env.example .env
 ### Prerequisites
 
 - Node.js 18+, npm
-- [CRE CLI](https://docs.chain.link/chainlink-nodes/cre) installed globally
+- CRE CLI installed and on PATH — download from [github.com/smartcontractkit/cre-cli/releases](https://github.com/smartcontractkit/cre-cli/releases)
 - Sepolia ETH — [sepoliafaucet.com](https://sepoliafaucet.com)
 
 ### Quick Start

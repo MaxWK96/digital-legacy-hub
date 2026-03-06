@@ -2,6 +2,9 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getLifeContract, getSigner } from '../../../lib/contract'
 import { ethers } from 'ethers'
 
+const WORLD_APP_ID = process.env.NEXT_PUBLIC_WORLD_APP_ID ?? 'app_staging_test'
+const ACTION_ID    = 'digital-executor-heir-verify'
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<{ success: boolean; txHash: string } | { error: string }>,
@@ -10,17 +13,43 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed — use POST' })
   }
 
-  const { heirAddress, nullifierHash } = req.body as {
-    heirAddress:  string
-    nullifierHash: string
+  const { heirAddress, nullifierHash, proof, merkle_root, verification_level } = req.body as {
+    heirAddress:        string
+    nullifierHash:      string
+    proof:              string
+    merkle_root:        string
+    verification_level: string
   }
 
-  if (!heirAddress || !nullifierHash) {
-    return res.status(400).json({ error: 'heirAddress and nullifierHash are required' })
+  if (!heirAddress || !nullifierHash || !proof || !merkle_root || !verification_level) {
+    return res.status(400).json({ error: 'heirAddress, nullifierHash, proof, merkle_root, and verification_level are required' })
   }
 
   if (!ethers.isAddress(heirAddress)) {
     return res.status(400).json({ error: 'Invalid heirAddress' })
+  }
+
+  // Verify the World ID ZK proof with Worldcoin's API before touching the contract
+  const verifyRes = await fetch(
+    `https://developer.worldcoin.org/api/v1/verify/${WORLD_APP_ID}`,
+    {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        nullifier_hash:     nullifierHash,
+        merkle_root:        merkle_root,
+        proof:              proof,
+        verification_level: verification_level,
+        action:             ACTION_ID,
+        signal:             heirAddress,
+      }),
+    },
+  )
+
+  if (!verifyRes.ok) {
+    const body = await verifyRes.json().catch(() => ({})) as { detail?: string }
+    console.error('[/api/heirs/register] World ID verification failed:', body)
+    return res.status(400).json({ error: `World ID verification failed: ${body.detail ?? verifyRes.statusText}` })
   }
 
   try {

@@ -18,7 +18,8 @@
     "cre:broadcast": "cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings --broadcast",
     "contracts:install": "cd contracts && npm install",
     "contracts:compile": "cd contracts && npx hardhat compile",
-    "contracts:deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network sepolia"
+    "contracts:deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network sepolia",
+    "contracts:deploy:registry": "cd contracts && npx hardhat run scripts/deployVerdictRegistry.ts --network sepolia"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
