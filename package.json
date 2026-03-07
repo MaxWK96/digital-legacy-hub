@@ -16,6 +16,7 @@
     "demo": "npx tsx scripts/demo.ts",
     "cre:simulate": "node scripts/cre-run.js workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings",
     "cre:broadcast": "node scripts/cre-run.js workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings --broadcast",
+    "cre:worldid-simulate": "node scripts/cre-worldid-simulate.js",
     "contracts:install": "cd contracts && npm install",
     "contracts:compile": "cd contracts && npx hardhat compile",
     "contracts:deploy": "cd contracts && npx hardhat run scripts/deploy.ts --network sepolia",

@@ -1,18 +1,22 @@
 # ==========================================================================
-# Digital Executor — CRE Inactivity Monitor
+# Digital Executor — CRE Workflow
 # ==========================================================================
 # Chainlink Convergence Hackathon 2026
 #
-# Reads lastPing + threshold from LifeContract on Sepolia.
-# Evaluates inactivity: ACTIVE / WARNING / CRITICAL.
-# Writes status verdict to VerdictRegistry.
+# Trigger 0 (cron)  — Inactivity monitor: reads LifeContract, writes verdict
+# Trigger 1 (HTTP)  — World ID verifier: calls Worldcoin API, writes verdict
 #
-# Simulate:
+# Simulate inactivity monitor:
+#   npm run cre:simulate
 #   cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings
+#
+# Simulate World ID verifier:
+#   npm run cre:worldid-simulate
+#   cre workflow simulate ./cre-workflow --non-interactive --trigger-index 1 -T staging-settings
 
 staging-settings:
   user-workflow:
-    workflow-name: "digital-executor-inactivity-monitor-staging"
+    workflow-name: "digital-executor-staging"
   workflow-artifacts:
     workflow-path: "./main.ts"
     config-path: "./config.json"
@@ -20,7 +24,7 @@ staging-settings:
 
 production-settings:
   user-workflow:
-    workflow-name: "digital-executor-inactivity-monitor"
+    workflow-name: "digital-executor"
   workflow-artifacts:
     workflow-path: "./main.ts"
     config-path: "./config.json"

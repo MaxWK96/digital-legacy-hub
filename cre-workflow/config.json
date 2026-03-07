@@ -1,8 +1,11 @@
 {
   "schedule": "0 */5 * * * *",
   "lifeContractAddress": "0x7bB50FA2ACE5703Bf6a07644108971868Edb0fA3",
-  "registryAddress": "0x7576b99366a945BB29A087cA9bA467d28397288f",
+  "registryAddress": "0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910",
   "estateEthAmount": "1.5",
+  "worldAppId": "app_staging_test",
+  "worldActionId": "digital-executor-heir-verify",
+  "worldPublicKey": "",
   "evms": [
     {
       "chainSelectorName": "ethereum-testnet-sepolia",
