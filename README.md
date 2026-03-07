@@ -27,13 +27,23 @@ Digital Executor creates a trustless dead man's switch on-chain. The owner regul
 
 **Demo:** [https://www.youtube.com/watch?v=o8y-5CGNbNs](https://www.youtube.com/watch?v=o8y-5CGNbNs)
 
-The CRE workflow (`cre-workflow/main.ts`) runs on a 5-minute cron schedule across the DON and performs three steps:
+The CRE workflow (`cre-workflow/main.ts`) exposes **two triggers** on the DON:
+
+**Trigger 0 — Inactivity Monitor (`CronCapability`, every 5 min):**
 
 1. **Read** — `EVMClient.callContract()` reads `lastPing` and `threshold` from LifeContract on Sepolia at the protocol level, without any backend intermediary.
 2. **Evaluate** — Off-chain computation determines ACTIVE (< 90 % of threshold), WARNING (≥ 90 %), or CRITICAL (≥ 100 %), a graded verdict that cannot be expressed in a simple Chainlink Automation `checkUpkeep` boolean.
-3. **Write** — `runtime.report()` + `EVMClient.writeReport()` submits the verdict through the DON's consensus-and-signing pipeline, producing a multi-node endorsed on-chain record rather than a single-operator assertion.
+3. **Price** — `HTTPClient` fetches live ETH/USD from CoinGecko with `consensusMedianAggregation` — each DON node queries independently and the median is taken.
+4. **Write** — `runtime.report()` + `EVMClient.writeReport()` submits the verdict through the DON's consensus-and-signing pipeline, producing a multi-node endorsed on-chain record rather than a single-operator assertion.
 
-`CronCapability` eliminates any centralized server dependency — the monitor runs on the DON itself. A future extension using CRE Confidential HTTP would allow checking off-chain life signals (email last-login, banking APIs) without leaking heir identities or queried accounts on-chain.
+**Trigger 1 — World ID Verifier (`HTTPCapability`, on-demand via DON gateway):**
+
+1. **Receive** — The backend signs a World ID proof payload with the owner key and POSTs it to the Chainlink DON gateway, firing this trigger.
+2. **Verify** — Each DON node independently calls `https://developer.worldcoin.org/api/v1/verify/{app_id}` via `HTTPClient`. Results are aggregated with `consensusMedianAggregation` — a single rogue node cannot flip the outcome.
+3. **Attest** — On a verified result, `EVMClient.writeReport()` writes `WORLDID_VERIFIED|heir|nullifier` to VerdictRegistry on Sepolia, producing a DON-signed on-chain attestation of heir identity.
+4. **Register** — The backend detects the VerdictRegistry event and calls `registerHeir()` with the owner key, completing Sybil-resistant heir registration.
+
+World ID proof verification never touches the backend server — the Worldcoin API call happens across the DON with multi-node consensus.
 
 ---
 
@@ -48,8 +58,8 @@ Digital-Legacy-Hub/
 ├── contracts/                  # Hardhat smart contracts
 │   └── contracts/
 │       └── LifeContract.sol    # Core estate contract (Sepolia)
-├── cre-workflow/               # Chainlink CRE inactivity monitor
-│   └── main.ts                 # Reads LifeContract → VerdictRegistry
+├── cre-workflow/               # Chainlink CRE dual-trigger workflow
+│   └── main.ts                 # Trigger 0: inactivity monitor | Trigger 1: World ID verifier
 ├── backend/                    # Next.js API routes (port 3001)
 │   └── pages/api/
 │       ├── status.ts           # GET /api/status
@@ -67,9 +77,12 @@ Digital-Legacy-Hub/
 
 | Service | Usage |
 |---|---|
-| **CRE (Chainlink Runtime Environment)** | Scheduled inactivity monitor. Reads `lastPing` + `threshold` from LifeContract via `EVMClient.callContract()`. Writes ACTIVE/WARNING/CRITICAL verdict on-chain. |
+| **CRE — `CronCapability`** | Inactivity monitor on 5-min schedule. Reads `lastPing` + `threshold` from LifeContract via `EVMClient.callContract()`. Writes ACTIVE/WARNING/CRITICAL verdict to VerdictRegistry. |
+| **CRE — `HTTPCapability`** | On-demand World ID verifier. Receives signed proof via DON gateway, calls Worldcoin API via `HTTPClient` with `consensusMedianAggregation`, writes `WORLDID_VERIFIED` attestation on-chain. |
+| **CRE — `HTTPClient`** | Used in both triggers: CoinGecko ETH/USD price feed (inactivity monitor) and Worldcoin proof verification (World ID trigger). Multi-node consensus on every external call. |
+| **CRE — `EVMClient`** | Reads contract state (`callContract`) and writes DON-signed verdicts (`writeReport`) in both triggers. |
 | **Sepolia Testnet** | All contracts deployed and verified on Ethereum Sepolia |
-| **VerdictRegistry** | Existing deployed contract reused for storing CRE verdicts |
+| **VerdictRegistry** | `0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910` — stores both inactivity verdicts and World ID verification attestations |
 
 ---
 
@@ -110,15 +123,17 @@ Address: 0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910 (Sepolia)
 
 ```bash
 # Requires CRE CLI — install: https://docs.chain.link/chainlink-nodes/cre/getting-started/cli-installation
+# Set CRE_BIN env var if cre is not on your PATH:
+#   export CRE_BIN="/path/to/cre"
 
-# From project root
-cre workflow simulate ./cre-workflow --non-interactive --trigger-index 0 -T staging-settings
-
-# Or via npm:
+# Simulate inactivity monitor (trigger-index 0):
 npm run cre:simulate
 
-# Broadcast real tx to Sepolia:
+# Broadcast real inactivity verdict tx to Sepolia:
 npm run cre:broadcast
+
+# Simulate World ID verifier (trigger-index 1, fake proof → REJECTED expected):
+npm run cre:worldid-simulate
 ```
 
 ### CRE Workflow Output
@@ -186,15 +201,20 @@ npm run cre:broadcast
 
 ## World ID Integration
 
-Heirs prove unique humanity via World ID. Flow:
+Heirs prove unique humanity via World ID. Proof verification routes **through the Chainlink DON** — not the backend — providing multi-node consensus on the result. Flow:
+
 1. Heir clicks **Verify with World ID** next to their address in Dashboard
-2. `IDKitWidget` opens, heir completes verification
-3. On success: frontend calls `POST /api/heirs/register` with `nullifierHash`
-4. Backend calls `registerHeir(address, nullifierHash)` on LifeContract
-5. Heir shows **✓ World ID** badge — Sybil-resistant estate distribution
+2. `IDKitWidget` opens, heir completes verification in-browser
+3. On success: frontend calls `POST /api/heirs/register` with the proof payload
+4. Backend signs the payload with the owner key (EIP-191) and POSTs to the **Chainlink DON gateway** (`CRE_GATEWAY_URL`) with an `X-Chainlink-Sig` header
+5. **CRE Trigger 1 fires** — each DON node independently calls `https://developer.worldcoin.org/api/v1/verify/{app_id}` via `HTTPClient`; results are aggregated with `consensusMedianAggregation`
+6. On verified consensus: CRE writes `WORLDID_VERIFIED|heir|nullifier` to VerdictRegistry via `EVMClient.writeReport()` (DON-signed on-chain attestation)
+7. Backend polls VerdictRegistry for the attestation event (up to 60 s), then calls `registerHeir(address, nullifierHash)` on LifeContract with the owner key
+8. Heir shows **✓ World ID** badge — Sybil-resistant estate distribution
 
 **Action ID:** `digital-executor-heir-verify`
 **Nullifier hash:** Stored immutably on LifeContract, prevents duplicate registration
+**Without `CRE_GATEWAY_URL`:** `/api/heirs/register` returns 503 with instructions to use `npm run cre:worldid-simulate` for local testing
 
 ---
 
@@ -213,6 +233,7 @@ cp .env.example .env
 | `VERDICT_REGISTRY_ADDRESS` | `0x0D7e01ceA12fe8E923f39E5021a23333A3aa8910` |
 | `NEXT_PUBLIC_WORLD_APP_ID` | World ID app ID |
 | `ETHERSCAN_API_KEY` | For contract verification |
+| `CRE_GATEWAY_URL` | Chainlink DON gateway URL (set after workflow deployment; omit to use local simulate) |
 
 ---
 
